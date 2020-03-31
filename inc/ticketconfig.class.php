@@ -51,7 +51,7 @@ class PluginCreditTicketConfig extends CommonDBTM {
       if(!isset($_SESSION['credit']['post_update'])){
          if(($this->fields['credit_default_followup'] ===  $this->fields['credit_default_task'])
          && ($this->fields['credit_default_task'] ===  $this->fields['credit_default_solution']) ){
-               $this->fields['credit_default'] = $this->fields['credit_default_solution'];
+            $this->fields['credit_default'] = $this->fields['credit_default_solution'];
          }else{
             $this->fields['credit_default'] = 0;
          }
@@ -64,9 +64,6 @@ class PluginCreditTicketConfig extends CommonDBTM {
 
    public function post_updateItem($history = 1) {
       $this->calculateGlobalDefault();
-
-      var_dump($this);
-      die;
    }
 
    public function post_addItem($history = 1) {
@@ -82,25 +79,25 @@ class PluginCreditTicketConfig extends CommonDBTM {
     * @param $sqlfilter    string      to add a SQL filter (default '')
     * @return array of vouchers
    **/
-  static function getDefaultForTicket($ID, $itemtype) {
-   $ticketConfig = new PluginCreditTicketConfig();
-   if($ticketConfig->getFromDBByCrit(["tickets_id" => $ID])){
-      switch ($itemtype) {
-         case ITILFollowup::getType():
-            return $ticketConfig->fields['credit_default_followup'];
-            break;
+   static function getDefaultForTicket($ID, $itemtype) {
+      $ticketConfig = new PluginCreditTicketConfig();
+      if($ticketConfig->getFromDBByCrit(["tickets_id" => $ID])){
+         switch ($itemtype) {
+            case ITILFollowup::getType():
+               return $ticketConfig->fields['credit_default_followup'];
+               break;
 
-         case TicketTask::getType():
-            return $ticketConfig->fields['credit_default_task'];
-            break;
+            case TicketTask::getType():
+               return $ticketConfig->fields['credit_default_task'];
+               break;
 
-         case ITILSolution::getType():
-            return $ticketConfig->fields['credit_default_solution'];
-            break;
+            case ITILSolution::getType():
+               return $ticketConfig->fields['credit_default_solution'];
+               break;
+         }
       }
+      return 0;
    }
-   return 0;
-}
 
 
    /**
