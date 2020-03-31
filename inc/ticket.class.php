@@ -358,6 +358,10 @@ class PluginCreditTicket extends CommonDBTM {
                                                'value'     => $default_credit,
                                                'condition' => ['is_active' => 1],
                                                'rand'      => $rand]);
+
+                           //console.log($('select[name=\"plugin_credit_entities_id\"]').trigger('change'));
+
+
          $out .= "</td><td colspan='2'></td>";
          $out .= "</tr><tr><td>";
          $out .= "<label for='plugin_credit_quantity'>";
@@ -373,6 +377,15 @@ class PluginCreditTicket extends CommonDBTM {
             false
          );
          $out .= "</td><td colspan='2'></td></tr>";
+      }
+
+      //trigger change to force load quantity select
+      if($default_credit > 0){
+         $out .= Html::scriptBlock("
+            $(document).ready(function() {
+               $('#dropdown_plugin_credit_entities_id$rand').trigger('change');
+            });
+         ");
       }
 
       echo $out;
