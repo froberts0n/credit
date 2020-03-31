@@ -349,9 +349,13 @@ class PluginCreditTicket extends CommonDBTM {
          $out .= __('Voucher name', 'credit');
          $out .= "</label>";
          $out .= "</td><td>";
+
+         //get default value 
+         $default_credit = PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(), $item->getType());
          $out .= PluginCreditEntity::dropdown(['name'      => 'plugin_credit_entities_id',
                                                'entity'    => $ticket->getEntityID(),
                                                'display'   => false,
+                                               'value'     => $default_credit,
                                                'condition' => ['is_active' => 1],
                                                'rand'      => $rand]);
          $out .= "</td><td colspan='2'></td>";

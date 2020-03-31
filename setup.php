@@ -72,6 +72,7 @@ function plugin_init_credit() {
             'TicketTask'     => ['PluginCreditTicket', 'consumeVoucher'],
          ];
       }
+      $PLUGIN_HOOKS['add_javascript']['credit'][] = "js/credit.js";
       $PLUGIN_HOOKS['item_get_datas']['credit'] = ['NotificationTargetTicket' => 'plugin_credit_get_datas'];
    }
 }
