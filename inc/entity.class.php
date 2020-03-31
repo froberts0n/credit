@@ -183,7 +183,8 @@ class PluginCreditEntity extends CommonDBTM {
    static function getDefaultForEntityAndType($ID, $itemtype) {
 
       $credit = new PluginCreditEntity();
-      $options = ["entities_id" => $ID];
+      $options = ["entities_id" => $ID,
+                  "is_active" => 1];
 
       //second step check if default credit for itemtype exist
       switch ($itemtype) {
@@ -202,7 +203,7 @@ class PluginCreditEntity extends CommonDBTM {
 
       $credit->getFromDBByCrit($options);
       if(!$credit->getFromDBByCrit($options)){
-         return ;
+         return 0;
       }else{
          return $credit->fields['id'];
       }
