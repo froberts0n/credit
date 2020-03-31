@@ -36,21 +36,20 @@ class PluginCreditTicketConfig extends CommonDBTM {
    }
 
    static function createTicketOption(Ticket $ticket) {
-
       $ticketConfig = new PluginCreditTicketConfig();
       $data = [
          "tickets_id"               => $ticket->getID(),
-         "credit_default_followup"  => PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(),ITILFollowup::getType()),
-         "credit_default_task"      => PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(),TicketTask::getType()),
-         "credit_default_solution"  => PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(),ITILSolution::getType()),
+         "credit_default_followup"  => 0,
+         "credit_default_task"      => 0,
+         "credit_default_solution"  => 0,
       ];
       $ticketConfig->add($data);
       return $ticketConfig;
-
    }
+
    public function calculateGlobalDefault(){
       if(!isset($_SESSION['credit']['post_update'])){
-         if(($this->fields['credit_default_followup'] ===  $this->fields['credit_default_task']) 
+         if(($this->fields['credit_default_followup'] ===  $this->fields['credit_default_task'])
          && ($this->fields['credit_default_task'] ===  $this->fields['credit_default_solution']) ){
                $this->fields['credit_default'] = $this->fields['credit_default_solution'];
          }else{
@@ -65,21 +64,16 @@ class PluginCreditTicketConfig extends CommonDBTM {
 
    public function post_updateItem($history = 1) {
       $this->calculateGlobalDefault();
+
+      var_dump($this);
+      die;
    }
 
    public function post_addItem($history = 1) {
       $this->calculateGlobalDefault();
    }
 
-   static function createTicketConfig(CommonDBTM $item) {
-      $ticketconfig = new PluginCreditTicketConfig();
-      if(!$ticketconfig->getFromDBByCrit(["tickets_id" => $item->getID()])){
-         $ticketconfig = self::createTicketOption($item);
-      }
-   }
-
-
-      /**
+   /**
     * Get default credit for entity and itemtype
     *
     * @param $ID           integer     entities ID
@@ -116,10 +110,16 @@ class PluginCreditTicketConfig extends CommonDBTM {
    **/
    static function showForTicket(Ticket $ticket) {
 
+      $canedit = $ticket->canEdit($ticket->getID());
+      if (in_array($ticket->fields['status'], Ticket::getSolvedStatusArray())
+          || in_array($ticket->fields['status'], Ticket::getClosedStatusArray())) {
+         $canedit = false;
+      }
+
       //load ticket configuration
       $ticketconfig = new PluginCreditTicketConfig();
       if(!$ticketconfig->getFromDBByCrit(["tickets_id" => $ticket->getID()])){
-         $ticketconfig = self::createTicketOption($ticket);
+         $ticketconfig = PluginCreditTicketConfig::createTicketOption($ticket);
       }
 
       $credit = new PluginCreditEntity();
@@ -181,6 +181,7 @@ class PluginCreditTicketConfig extends CommonDBTM {
       echo $out;
 
       $ticketconfig->showFormButtons(['candel'=>false,
+                                       'canedit' => $canedit,
                                        'colspan' => 4]);
 
    }

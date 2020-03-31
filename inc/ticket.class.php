@@ -355,7 +355,10 @@ class PluginCreditTicket extends CommonDBTM {
          //get default value for entity
          $default_credit = PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(), $item->getType());
          //get default value for ticket
-         $default_credit = PluginCreditTicketConfig::getDefaultForTicket($ticket->getID(), $item->getType());
+         $default_credit_ticket = PluginCreditTicketConfig::getDefaultForTicket($ticket->getID(), $item->getType());
+         if($default_credit_ticket != 0){
+            $default_credit = $default_credit_ticket;
+         }
 
          $out .= PluginCreditEntity::dropdown(['name'      => 'plugin_credit_entities_id',
                                                'entity'    => $ticket->getEntityID(),

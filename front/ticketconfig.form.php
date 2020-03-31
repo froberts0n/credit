@@ -41,4 +41,10 @@ if (isset($_POST["update"])) {
    Html::back();
 }
 
+if (isset($_POST["add"])) {
+   $ticketConfig->check(-1, UPDATE, $_POST);
+   $ticketConfig->add($_POST);
+   Html::back();
+}
+
 Html::displayErrorAndDie("lost");
