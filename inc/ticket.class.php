@@ -173,6 +173,8 @@ class PluginCreditTicket extends CommonDBTM {
          $canedit = false;
       }
 
+      PluginCreditTicketConfig::showForTicket($ticket);
+
       $out = "";
       $out .= "<div class='spaced'>";
       $out .= "<table class='tab_cadre_fixe'>";
@@ -350,17 +352,17 @@ class PluginCreditTicket extends CommonDBTM {
          $out .= "</label>";
          $out .= "</td><td>";
 
-         //get default value 
+         //get default value for entity
          $default_credit = PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(), $item->getType());
+         //get default value for ticket
+         $default_credit = PluginCreditTicketConfig::getDefaultForTicket($ticket->getID(), $item->getType());
+
          $out .= PluginCreditEntity::dropdown(['name'      => 'plugin_credit_entities_id',
                                                'entity'    => $ticket->getEntityID(),
                                                'display'   => false,
                                                'value'     => $default_credit,
                                                'condition' => ['is_active' => 1],
                                                'rand'      => $rand]);
-
-                           //console.log($('select[name=\"plugin_credit_entities_id\"]').trigger('change'));
-
 
          $out .= "</td><td colspan='2'></td>";
          $out .= "</tr><tr><td>";

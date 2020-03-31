@@ -1,0 +1,227 @@
+<?php
+/**
+ * --------------------------------------------------------------------------
+ * LICENSE
+ *
+ * This file is part of credit.
+ *
+ * credit is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * credit is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * --------------------------------------------------------------------------
+ * @author    François Legastelois
+ * @copyright Copyright (C) 2017-2018 by Teclib'.
+ * @license   GPLv3 https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://github.com/pluginsGLPI/credit
+ * @link      https://pluginsglpi.github.io/credit/
+ * -------------------------------------------------------------------------
+ */
+
+if (!defined('GLPI_ROOT')) {
+   die("Sorry. You can't access directly to this file");
+}
+
+class PluginCreditTicketConfig extends CommonDBTM {
+
+   public static $rightname = 'entity';
+
+   static function getTypeName($nb = 0) {
+      return _n('Default credit options', 'Credit vouchers', $nb, 'credit');
+   }
+
+   static function createTicketOption(Ticket $ticket) {
+
+      $ticketConfig = new PluginCreditTicketConfig();
+      $data = [
+         "tickets_id"               => $ticket->getID(),
+         "credit_default_followup"  => PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(),ITILFollowup::getType()),
+         "credit_default_task"      => PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(),TicketTask::getType()),
+         "credit_default_solution"  => PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(),ITILSolution::getType()),
+      ];
+      $ticketConfig->add($data);
+      return $ticketConfig;
+
+   }
+   public function calculateGlobalDefault(){
+      if(!isset($_SESSION['credit']['post_update'])){
+         if(($this->fields['credit_default_followup'] ===  $this->fields['credit_default_task']) 
+         && ($this->fields['credit_default_task'] ===  $this->fields['credit_default_solution']) ){
+               $this->fields['credit_default'] = $this->fields['credit_default_solution'];
+         }else{
+            $this->fields['credit_default'] = 0;
+         }
+         $_SESSION['credit']['post_update'] = true;
+         $this->update($this->fields);
+      }else{
+         unset($_SESSION['credit']['post_update']);
+      }
+   }
+
+   public function post_updateItem($history = 1) {
+      $this->calculateGlobalDefault();
+   }
+
+   public function post_addItem($history = 1) {
+      $this->calculateGlobalDefault();
+   }
+
+   static function createTicketConfig(CommonDBTM $item) {
+      $ticketconfig = new PluginCreditTicketConfig();
+      if(!$ticketconfig->getFromDBByCrit(["tickets_id" => $item->getID()])){
+         $ticketconfig = self::createTicketOption($item);
+      }
+   }
+
+
+      /**
+    * Get default credit for entity and itemtype
+    *
+    * @param $ID           integer     entities ID
+    * @param $start        integer     first line to retrieve (default 0)
+    * @param $limit        integer     max number of line to retrieve (0 for all) (default 0)
+    * @param $sqlfilter    string      to add a SQL filter (default '')
+    * @return array of vouchers
+   **/
+  static function getDefaultForTicket($ID, $itemtype) {
+   $ticketConfig = new PluginCreditTicketConfig();
+   if($ticketConfig->getFromDBByCrit(["tickets_id" => $ID])){
+      switch ($itemtype) {
+         case ITILFollowup::getType():
+            return $ticketConfig->fields['credit_default_followup'];
+            break;
+
+         case TicketTask::getType():
+            return $ticketConfig->fields['credit_default_task'];
+            break;
+
+         case ITILSolution::getType():
+            return $ticketConfig->fields['credit_default_solution'];
+            break;
+      }
+   }
+   return 0;
+}
+
+
+   /**
+    * Show default credit option ticket
+    *
+    * @param $ticket Ticket object
+   **/
+   static function showForTicket(Ticket $ticket) {
+
+      //load ticket configuration
+      $ticketconfig = new PluginCreditTicketConfig();
+      if(!$ticketconfig->getFromDBByCrit(["tickets_id" => $ticket->getID()])){
+         $ticketconfig = self::createTicketOption($ticket);
+      }
+
+      $credit = new PluginCreditEntity();
+      $data = $credit->find([
+         "entities_id" => $ticket->getEntityID(),
+         "is_active"   => true
+      ]);
+
+      $values = [];
+      foreach ($data as $key => $value) {
+         $values[$key] = $value['name'];
+      }
+
+      $ticketconfig->showFormHeader(["colspan" => 4]);
+      $rand = mt_rand();
+      $out = "";
+      $out .= "<tr>";
+      $out .= "<td>".__('Default for ticket', 'credit')."</td>";
+      $out .= "<td>";
+
+      $out .= PluginCreditEntity::dropdown(['name'      => 'credit_default',
+                                             'entity'    => $ticket->getEntityID(),
+                                             'display'   => false,
+                                             'value'     => $ticketconfig->fields['credit_default'],
+                                             'condition' => ['is_active' => 1],
+                                             'rand'      => $rand,
+                                             'on_change' => 'propageSelected(this)']);
+      $out .= "</td>";
+      $out .= "<td >".__('Default for followups', 'credit')."</td>";
+
+      $out .= "<td>";
+      $out .= Dropdown::showFromArray("credit_default_followup",$values, ["display" => false,
+                                                                           'display_emptychoice' => true,
+                                                                           'rand'      => $rand,
+                                                                           'value'     => $ticketconfig->fields['credit_default_followup'],
+                                                                           ]);
+      $out .= "</td>";
+
+      $out .= "<td >".__('Default for tasks', 'credit')."</td>";
+      $out .= "<td>";
+      $out .= Dropdown::showFromArray("credit_default_task",$values, ["display" => false,
+                                                                     'display_emptychoice' => true,
+                                                                     'rand'      => $rand,
+                                                                     'value'     => $ticketconfig->fields['credit_default_task'],
+                                                                     ]);
+      $out .= "</td>";
+
+      $out .= "<td >".__('Default for solution', 'credit')."</td>";
+      $out .= "<td>";
+      $out .= Dropdown::showFromArray("credit_default_solution",$values, ["display" => false,
+                                                                        'display_emptychoice' => true,
+                                                                        'rand'      => $rand,
+                                                                        'value'     => $ticketconfig->fields['credit_default_solution'],
+                                                                        ]);
+
+      $out .= "</td>";
+      $out .= "</tr>";
+      $out .= "<tr class='tab_bg_1'>";
+      echo $out;
+
+      $ticketconfig->showFormButtons(['candel'=>false,
+                                       'colspan' => 4]);
+
+   }
+
+
+
+   /**
+    * Install all necessary table for the plugin
+    *
+    * @return boolean True if success
+    */
+   static function install(Migration $migration) {
+      global $DB;
+
+      $table = self::getTable();
+
+      if (!$DB->tableExists($table)) {
+         $migration->displayMessage("Installing $table");
+
+         $query = "CREATE TABLE IF NOT EXISTS `$table` (
+                     `id` int(11) NOT NULL auto_increment,
+                     `tickets_id` int(11) NOT NULL DEFAULT '0',
+                     `credit_default` tinyint(1) NOT NULL DEFAULT '0',
+                     `credit_default_followup` tinyint(1) NOT NULL DEFAULT '0',
+                     `credit_default_solution` tinyint(1) NOT NULL DEFAULT '0',
+                     `credit_default_task` tinyint(1) NOT NULL DEFAULT '0',
+                     PRIMARY KEY (`id`)
+                  ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+         $DB->query($query) or die($DB->error());
+      }
+   }
+
+   /**
+    * Uninstall previously installed table of the plugin
+    *
+    * @return boolean True if success
+    */
+   static function uninstall(Migration $migration) {
+
+      $table = self::getTable();
+      $migration->displayMessage("Uninstalling $table");
+      $migration->dropTable($table);
+   }
+}
