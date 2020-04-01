@@ -654,6 +654,7 @@ class PluginCreditEntity extends CommonDBTM {
                      `begin_date` timestamp NULL DEFAULT NULL,
                      `end_date` timestamp NULL DEFAULT NULL,
                      `quantity` int(11) NOT NULL DEFAULT '0',
+                     `overconsumption_allowed` tinyint(1) NOT NULL DEFAULT '0',
                      `is_default` tinyint(1) NOT NULL DEFAULT '0',
                      `is_default_followup` tinyint(1) NOT NULL DEFAULT '0',
                      `is_default_solution` tinyint(1) NOT NULL DEFAULT '0',
