@@ -310,6 +310,9 @@ class PluginCreditEntity extends CommonDBTM {
          $out .= "</div>";
       }
 
+      PluginCreditEntityConfig::showEntityConfig($entity, $entity::getType());
+
+
       $out    .= "<div class='spaced'>";
       $number  = self::countForItem($entity);
       if ($number) {
@@ -400,8 +403,8 @@ class PluginCreditEntity extends CommonDBTM {
             $quantity_consumed = PluginCreditTicket::getConsumedForCreditEntity($data['id']);
             $out .= "<td class='center'>";
             $out .= Ajax::createIframeModalWindow('displaycreditconsumed_'.$data["id"],
-                                                  Plugin::getWebDir('credit').
-                                                  "/front/ticket.php?plugcreditentity=".
+                                          Plugin::getWebDir('credit').
+                                          "/front/ticket.php?plugcreditentity=".
                                                   $data["id"],
                                           ['title'         => __('Consumed details', 'credit'),
                                            'reloadonclose' => false,
@@ -455,7 +458,11 @@ class PluginCreditEntity extends CommonDBTM {
          $out .= "<p class='center b'>".__('No credit voucher', 'credit')."</p>";
       }
       $out .= "</div>";
+
+
       echo $out;
+
+
    }
 
    function rawSearchOptions() {
@@ -651,8 +658,8 @@ class PluginCreditEntity extends CommonDBTM {
                      `entities_id` int(11) NOT NULL DEFAULT '0',
                      `is_active` tinyint(1) NOT NULL DEFAULT '0',
                      `plugin_credit_types_id` tinyint(1) NOT NULL DEFAULT '0',
-                     `begin_date` timestamp NULL DEFAULT NULL,
-                     `end_date` timestamp NULL DEFAULT NULL,
+                     `begin_date` datetime DEFAULT NULL,
+                     `end_date` datetime DEFAULT NULL,
                      `quantity` int(11) NOT NULL DEFAULT '0',
                      `overconsumption_allowed` tinyint(1) NOT NULL DEFAULT '0',
                      `is_default` tinyint(1) NOT NULL DEFAULT '0',

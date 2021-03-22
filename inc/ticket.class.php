@@ -334,6 +334,17 @@ class PluginCreditTicket extends CommonDBTM {
          $canedit = false;
       }
 
+      $entityConfig = new PluginCreditEntityConfig();
+      $values = $entityConfig->getConfigurationValues($ticket->getEntityID());
+      $consume = false;
+      if ($item instanceof ITILSolution){
+         $consume = $values['consume_voucher_solution'];
+      }else if ($item instanceof TicketTask){
+         $consume = $values['consume_voucher_tasks'];
+      }else if($item instanceof ITILFollowup) {
+         $consume = $values['consume_voucher_followups'];
+      }
+
       $rand = mt_rand();
       if ($canedit) {
          $out .= "<tr><th colspan='2'>";
@@ -344,7 +355,7 @@ class PluginCreditTicket extends CommonDBTM {
          $out .= __('Consume a voucher ?', 'credit');
          $out .= "</label>";
          $out .= "</td><td>";
-         $out .= Dropdown::showYesNo('plugin_credit_consumed_voucher', 0, -1, ['display' => false]);
+         $out .= Dropdown::showYesNo('plugin_credit_consumed_voucher', $consume, -1, ['display' => false]);
          $out .= "</td><td colspan='2'></td>";
          $out .= "</tr><tr><td>";
          $out .= "<label for='voucher'>";
