@@ -105,7 +105,11 @@ class PluginCreditTicketConfig extends CommonDBTM {
     *
     * @param $ticket Ticket object
    **/
-   static function showForTicket(Ticket $ticket) {
+   static function showForTicketTab(Ticket $ticket, $isTicket = false) {
+
+      if(!Session::haveRight("entity",UPDATE)){
+         return true;
+      }
 
       $canedit = $ticket->canEdit($ticket->getID());
       if (in_array($ticket->fields['status'], Ticket::getSolvedStatusArray())
@@ -116,7 +120,11 @@ class PluginCreditTicketConfig extends CommonDBTM {
       //load ticket configuration
       $ticketconfig = new PluginCreditTicketConfig();
       if(!$ticketconfig->getFromDBByCrit(["tickets_id" => $ticket->getID()])){
-         $ticketconfig = PluginCreditTicketConfig::createTicketOption($ticket);
+         if (!$isTicket){
+            $ticketconfig = PluginCreditTicketConfig::createTicketOption($ticket);
+         } else {
+            $ticketconfig->getEmpty();
+         }
       }
 
       $credit = new PluginCreditEntity();
@@ -130,10 +138,19 @@ class PluginCreditTicketConfig extends CommonDBTM {
          $values[$key] = $value['name'];
       }
 
-      $ticketconfig->showFormHeader(["colspan" => 4]);
+      if(!$isTicket){
+         $ticketconfig->showFormHeader(["colspan" => 4]);
+      }
       $rand = mt_rand();
       $out = "";
-      $out .= "<tr>";
+      if($isTicket){
+         $out .= "<table id='creditmainform' class='tab_cadre_fixe'><tbody>";
+         $out .= "<tr>";
+         $out .= "<th style='width:13%'>".__('Credit', 'credit')."</th>";
+      }else{
+         $out .= "<tr>";
+      }
+
       $out .= "<td>".__('Default for ticket', 'credit')."</td>";
       $out .= "<td>";
 
@@ -175,15 +192,91 @@ class PluginCreditTicketConfig extends CommonDBTM {
       $out .= "</td>";
       $out .= "</tr>";
       $out .= "<tr class='tab_bg_1'>";
-      echo $out;
 
-      $ticketconfig->showFormButtons(['candel'=>false,
-                                       'canedit' => $canedit,
-                                       'colspan' => 4]);
+      if(!$isTicket){
+         echo $out;
+         $ticketconfig->showFormButtons(['candel'=>false,
+                                          'canedit' => $canedit,
+                                          'colspan' => 4]);
+      }else{
+         if(!$ticketconfig->isNewItem()){
+            $out .= Html::hidden("plugin_ticket_config_id", ['value' => $ticketconfig->getID()] );
+         }
+         $out .= "</tbody></table>";
+         echo $out;
+      }
 
    }
 
+   static function showForTicket($params) {
+      $item = $params['item'];
+      echo self::showForTicketTab($item, true);
+   }
 
+   static function manageTicket(CommonDBTM $item) {
+      $ticketConfig = new PluginCreditTicketConfig();
+      if(isset($item->input['plugin_ticket_config_id'])){
+         $data = [
+            "tickets_id" => $item->fields['id'],
+            "id" => $item->input['plugin_ticket_config_id'],
+         ];
+
+         if(isset($item->input['credit_default'])){
+            $data['credit_default'] = $item->input['credit_default'];
+         }
+
+         if(isset($item->input['credit_default_followup'])){
+            $data['credit_default_followup'] = $item->input['credit_default_followup'];
+         }
+
+         if(isset($item->input['credit_default_task'])){
+            $data['credit_default_task'] = $item->input['credit_default_task'];
+         }
+
+         if(isset($item->input['credit_default_solution'])){
+            $data['credit_default_solution'] = $item->input['credit_default_solution'];
+         }
+         $ticketConfig->update($data);
+      }else{
+
+         $data = [
+            "tickets_id" => $item->fields['id'],
+         ];
+
+         if(isset($item->input['credit_default'])){
+            $data['credit_default'] = $item->input['credit_default'];
+         }else{
+            $data['credit_default'] = 0;
+         }
+
+         if(isset($item->input['credit_default_followup'])){
+            $data['credit_default_followup'] = $item->input['credit_default_followup'];
+         }else{
+            $data['credit_default_followup'] = 0;
+         }
+
+         if(isset($item->input['credit_default_task'])){
+            $data['credit_default_task'] = $item->input['credit_default_task'];
+         }else{
+            $data['credit_default_task'] = 0;
+         }
+
+         if(isset($item->input['credit_default_solution'])){
+            $data['credit_default_solution'] = $item->input['credit_default_solution'];
+         }else{
+            $data['credit_default_solution'] = 0;
+         }
+
+         if($ticketConfig->getFromDBByCrit([
+            "tickets_id" => $item->fields['id'],
+         ])){
+            $data['id'] = $ticketConfig->getID();
+            $ticketConfig->update($data);
+         }else{
+            $ticketConfig->add($data);
+         }
+      }
+   }
 
    /**
     * Install all necessary table for the plugin

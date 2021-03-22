@@ -298,6 +298,11 @@ class PluginCreditTicket extends CommonDBTM {
 
       $item = $params['item'];
 
+      if($item instanceof Ticket){
+         PluginCreditTicketConfig::showForTicket($params);
+         return;
+      }
+
       if (!($item instanceof ITILSolution)
           && !($item instanceof TicketTask)
           && !($item instanceof ITILFollowup)) {
