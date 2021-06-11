@@ -37,8 +37,6 @@ class PluginCreditEntityConfig extends CommonDBTM {
 
    static function showEntityConfig(Entity $entity, $itemtype = 'Entity') {
 
-
-
          $ID = $entity->getField('id');
 
          //get configuration values
@@ -79,27 +77,27 @@ class PluginCreditEntityConfig extends CommonDBTM {
    }
 
 
-   public function saveConfiguration($data){
+   public function saveConfiguration($data) {
       $config = new Config();
       $values[$data['config_name']] = json_encode([
          'consume_voucher_followups' => $data['consume_voucher_followups'],
          'consume_voucher_tasks' => $data['consume_voucher_tasks'],
          'consume_voucher_solution' => $data['consume_voucher_solution']]);
-      $config->setConfigurationValues('plugin:credit',$values);
+      $config->setConfigurationValues('plugin:credit', $values);
    }
 
-   public function getConfigurationValues($entity_id){
+   public function getConfigurationValues($entity_id) {
       $config = new Config();
-      $values = $config->getConfigurationValues('plugin:credit',["name" =>Entity::getType()."-".$entity_id]);
+      $values = $config->getConfigurationValues('plugin:credit', ["name" =>Entity::getType()."-".$entity_id]);
       //create default values
-      if(empty($values)){
+      if (empty($values)) {
          $values[Entity::getType()."-".$entity_id] = json_encode([
             'consume_voucher_followups' => 0,
             'consume_voucher_tasks' => 0,
             'consume_voucher_solution' => 0]);
-         $config->setConfigurationValues('plugin:credit',$values);
+         $config->setConfigurationValues('plugin:credit', $values);
          return json_decode($values[Entity::getType()."-".$entity_id], true);
-      }else{
+      } else {
          return json_decode($values[Entity::getType()."-".$entity_id], true);
       }
 

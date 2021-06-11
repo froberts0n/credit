@@ -71,22 +71,22 @@ class PluginCreditEntity extends CommonDBTM {
       ]);
    }
 
-   public function calculateGlobalDefault(){
-      if(!isset($_SESSION['credit']['post_update'])){
-         if($this->fields['is_default_followup']
+   public function calculateGlobalDefault() {
+      if (!isset($_SESSION['credit']['post_update'])) {
+         if ($this->fields['is_default_followup']
             && $this->fields['is_default_task']
-            && $this->fields['is_default_solution']){
+            && $this->fields['is_default_solution']) {
                $this->fields['is_default'] = 1;
-         }else if(!$this->fields['is_default_followup']
+         } else if (!$this->fields['is_default_followup']
             && !$this->fields['is_default_task']
-            && !$this->fields['is_default_solution']){
+            && !$this->fields['is_default_solution']) {
             !$this->fields['is_default'] = 0;
-         }else{
+         } else {
             $this->fields['is_default'] = 2;
          }
          $_SESSION['credit']['post_update'] = true;
          $this->update($this->fields);
-      }else{
+      } else {
          unset($_SESSION['credit']['post_update']);
       }
    }
@@ -99,40 +99,40 @@ class PluginCreditEntity extends CommonDBTM {
       $this->calculateGlobalDefault();
    }
 
-   public function prepareInputForAdd($input){
+   public function prepareInputForAdd($input) {
 
       $credit =new PluginCreditEntity();
       $message = "";
 
-      if($input['is_default_followup']){
-         if(count($credit->find([
+      if ($input['is_default_followup']) {
+         if (count($credit->find([
             "entities_id" => $input["entities_id"],
             "is_default_followup"  => $input['is_default_followup']
-         ])) > 0){
-            $message .= __("Default credit for followups already exist","credit")."</br>";
+         ])) > 0) {
+            $message .= __("Default credit for followups already exist", "credit")."</br>";
          }
       }
 
-      if($input['is_default_task']){
-         if(count($credit->find([
+      if ($input['is_default_task']) {
+         if (count($credit->find([
             "entities_id" => $input["entities_id"],
             "is_default_task"  => $input['is_default_task']
-         ])) > 0){
-            $message .= __("Default credit for tasks already exist","credit")."</br>";
+         ])) > 0) {
+            $message .= __("Default credit for tasks already exist", "credit")."</br>";
          }
       }
 
-      if($input['is_default_solution']){
-         if(count($credit->find([
+      if ($input['is_default_solution']) {
+         if (count($credit->find([
             "entities_id" => $input["entities_id"],
             "is_default_solution"  => $input['is_default_solution']
-         ])) > 0){
-            $message .= __("Default credit for solutions already exist","credit")."</br>";
+         ])) > 0) {
+            $message .= __("Default credit for solutions already exist", "credit")."</br>";
          }
       }
 
-      if($message != ""){
-         Session::addMessageAfterRedirect($message,false,ERROR);
+      if ($message != "") {
+         Session::addMessageAfterRedirect($message, false, ERROR);
          return false;
       }
 
@@ -202,9 +202,9 @@ class PluginCreditEntity extends CommonDBTM {
       }
 
       $credit->getFromDBByCrit($options);
-      if(!$credit->getFromDBByCrit($options)){
+      if (!$credit->getFromDBByCrit($options)) {
          return 0;
-      }else{
+      } else {
          return $credit->fields['id'];
       }
 
@@ -311,7 +311,6 @@ class PluginCreditEntity extends CommonDBTM {
       }
 
       PluginCreditEntityConfig::showEntityConfig($entity, $entity::getType());
-
 
       $out    .= "<div class='spaced'>";
       $number  = self::countForItem($entity);
@@ -459,9 +458,7 @@ class PluginCreditEntity extends CommonDBTM {
       }
       $out .= "</div>";
 
-
       echo $out;
-
 
    }
 

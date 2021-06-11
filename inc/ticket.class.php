@@ -298,7 +298,7 @@ class PluginCreditTicket extends CommonDBTM {
 
       $item = $params['item'];
 
-      if($item instanceof Ticket){
+      if ($item instanceof Ticket) {
          PluginCreditTicketConfig::showForTicket($params);
          return;
       }
@@ -342,11 +342,11 @@ class PluginCreditTicket extends CommonDBTM {
       $entityConfig = new PluginCreditEntityConfig();
       $values = $entityConfig->getConfigurationValues($ticket->getEntityID());
       $consume = false;
-      if ($item instanceof ITILSolution){
+      if ($item instanceof ITILSolution) {
          $consume = $values['consume_voucher_solution'];
-      }else if ($item instanceof TicketTask){
+      } else if ($item instanceof TicketTask) {
          $consume = $values['consume_voucher_tasks'];
-      }else if($item instanceof ITILFollowup) {
+      } else if ($item instanceof ITILFollowup) {
          $consume = $values['consume_voucher_followups'];
       }
 
@@ -372,7 +372,7 @@ class PluginCreditTicket extends CommonDBTM {
          $default_credit = PluginCreditEntity::getDefaultForEntityAndType($ticket->getEntityID(), $item->getType());
          //get default value for ticket
          $default_credit_ticket = PluginCreditTicketConfig::getDefaultForTicket($ticket->getID(), $item->getType());
-         if($default_credit_ticket != 0){
+         if ($default_credit_ticket != 0) {
             $default_credit = $default_credit_ticket;
          }
 
@@ -401,7 +401,7 @@ class PluginCreditTicket extends CommonDBTM {
       }
 
       //trigger change to force load quantity select
-      if($default_credit > 0){
+      if ($default_credit > 0) {
          $out .= Html::scriptBlock("
             $(document).ready(function() {
                $('#dropdown_plugin_credit_entities_id$rand').trigger('change');
